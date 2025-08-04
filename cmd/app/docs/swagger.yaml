@@ -1,0 +1,966 @@
+openapi: 3.0.4
+info:
+  title: Guest Management System
+  description: |-
+    A Visitor Management System (VMS) is a software-based solution that helps organizations manage and monitor the flow of all people entering and exiting their premises. It plans visits and smooths the process of requesting visitors and approving those requests. It manages all data digitally, which provides secure, searchable, and remotely available records.
+  version: 0.0.1
+servers:
+  - url: https://localhost/
+tags:
+  - name: hosts
+    description: operations of host
+  - name: admin
+    description: operations of admin
+  - name: visitor
+    description: manage your visitors
+  - name: visit
+    description: perform task related to visit
+  - name: reception
+    description: operations of reception
+  - name: auth
+    description: Host authentication and authorization
+  - name: logs
+    description: access the logs
+
+paths:
+  # --- Authentication Module ---
+  /auth/login:
+    post:
+      tags:
+        - auth
+      summary: Login for all hosts and admins
+      description: Authenticates a host and returns an access token.
+      operationId: login
+      requestBody:
+        $ref: '#/components/requestBodies/Credentials'
+      responses:
+        '200':
+          description: Successful login.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    $ref: '#/components/schemas/AuthToken'
+                  data:
+                    type: object
+                    properties:
+                      id:
+                        $ref: '#/components/schemas/Id'
+                    required:
+                      - hostId
+        '400':
+          description: Invalid username or password
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # --- Host Module ---
+  /admins/create-host:
+    post:
+      tags:
+        - admin
+      summary: Register a new host
+      description: Admin can register a new host.
+      operationId: createHost
+      requestBody:
+        $ref: '#/components/requestBodies/CreateHost'
+      responses:
+        '201':
+          description: Successful operation, host created.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Host'
+        '400':
+          description: Invalid input
+        '409':
+          description: A host with the same email or username already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth: []
+  
+  /hosts/{Id}:
+    get:
+      tags:
+        - hosts
+      summary: Find host by Id
+      description: Returns a host's details.
+      operationId: getHostById
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Host'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Host not found
+      security:
+        - BearerAuth: []
+    
+    patch:
+      tags:
+        - hosts
+      summary: Update host details
+      description: Hosts can update their own details or admins can update a host's details.
+      operationId: updateHostById
+      parameters:
+        - name: Id
+          in: path
+          description: Id of host
+          required: true
+          schema:
+            $ref: '#/components/schemas/Id'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateHost'
+      responses:
+        '200':
+          description: Successful operation
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Host'
+        '400':
+          description: Invalid ID supplied
+        '404':
+          description: Host not found
+      security:
+        - BearerAuth: []
+
+  # --- Visit Module ---
+  /visits:
+    post:
+      tags:
+        - visit
+      summary: Request a visit
+      description: Hosts or admins can request a visit by providing visitorId and expected arrival time.
+      operationId: requestVisit
+      requestBody:
+        $ref: '#/components/requestBodies/RequestVisit'
+      responses:
+        '201':
+          description: Visit requested successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visit'
+        '400':
+          description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Unauthorised
+        '500':
+          description: Internal Server Error
+      security:
+        - BearerAuth: []
+    
+    get:
+      tags:
+        - visit
+      summary: Get and filter visits
+      description: Retrieves visits with optional filters.
+      operationId: getFilteredVisits
+      parameters:
+        - name: status
+          in: query
+          description: Filter visits by their status.
+          schema:
+            type: string
+            enum: [Pending, Expected, Checked In, Checked Out, Canceled, Approved, Denied]
+        - name: hostId
+          in: query
+          description: Filter visits by the host ID who requested them.
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: visitorId
+          in: query
+          description: Filter visits by the visitor ID.
+          schema:
+            $ref: '#/components/schemas/Id'
+        - name: date
+          in: query
+          description: Filter visits by their date.
+          schema:
+            type: string
+            format: date
+            example: "2025-08-03"
+      responses:
+        '200':
+          description: visits fetched successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Visit'
+        '204':
+          description: No Visit get filtered
+      security:
+        - BearerAuth: []
+  
+  /visits/{Id}:
+    patch:
+      tags:
+        - visit
+      summary: Update a visit
+      description: Hosts and Admins can update a visit by providing visitId and new information.
+      operationId: updateVisit
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateVisit'
+      responses:
+        '200':
+          description: Visit updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visit'
+        '404':
+          description: Visit not found.
+        '500':
+          description: Internal Server Error
+      security:
+        - BearerAuth: []
+    
+    post:
+      tags:
+        - visit
+      summary: Cancel a visit
+      description: Hosts and admins can cancel a visit.
+      operationId: cancelVisit
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        $ref: '#/components/requestBodies/CancelVisit'
+      responses:
+        '200':
+          description: Visit cancelled successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visit'
+        '404':
+          description: Visit not found.
+        '500':
+          description: Internal Server Error
+      security:
+        - BearerAuth: []
+
+  /visits/{Id}/resolve:
+    post:
+      tags:
+        - visit
+      summary: Approve or deny a visit request
+      description: Admins can approve or deny a visit request and specify a reason.
+      operationId: resolveVisitRequest
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        $ref: '#/components/requestBodies/ResolveVisit'
+      responses:
+        '200':
+          description: Visit request resolved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visit'
+        '400':
+          description: Invalid input or action.
+        '403':
+          description: Forbidden, only admins can resolve requests.
+        '404':
+          description: Visit request not found.
+      security:
+        - BearerAuth: []
+  
+  # --- Visitor Module ---
+  /visitors:
+    post:
+      tags:
+        - visitor
+      summary: Create a visitor
+      description: Host can create a visitor by providing required information.
+      operationId: createVisitor
+      requestBody:
+        $ref: '#/components/requestBodies/CreateVisitor'
+      responses:
+        '201':
+          description: Visitor created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visitor'
+        '400':
+          description: Invalid input
+        '409':
+          description: A visitor with the same email or contact already exists.
+        '500':
+          description: Internal Server Error
+      security:
+        - BearerAuth: []
+    
+    get:
+      tags:
+        - visitor
+      summary: Get all visitors
+      description: Get information about all the visitors.
+      operationId: getAllVisitors
+      responses:
+        '200':
+          description: Visitors data retrieved successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Visitor'
+        '404':
+          description: Visitors not found.
+      security:
+        - BearerAuth: []
+  
+  /visitors/{Id}:
+    get:
+      tags:
+        - visitor
+      summary: Get visitor by id
+      description: Hosts and admin can get visitor details by visitor id.
+      operationId: getVisitorById
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        '200':
+          description: Visitor fetched successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visitor'
+        '400':
+          description: Invalid input
+        '404':
+          description: Visitor not found.
+      security:
+        - BearerAuth: []
+    
+    patch:
+      tags:
+        - visitor
+      summary: Update visitor by Id
+      description: Hosts and admins can update visitor details by providing visitor id and new information.
+      operationId: updateVisitorById
+      parameters:
+      - name: Id
+        in: path
+        description: Id of Visitor
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      requestBody:
+        $ref: '#/components/requestBodies/UpdateVisitor'
+      responses:
+        '200':
+          description: Visitor updated successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Visitor'
+        '400':
+          description: Invalid input
+        '404':
+          description: Visitor not found.
+      security:
+        - BearerAuth: []
+    
+    delete:
+      tags:
+        - visitor
+      summary: Disable visitor
+      description: Disable a visitor account by their ID.
+      operationId: disableVisitorById
+      parameters:
+      - name: Id
+        in: path
+        description: Id of the visitor
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
+      responses:
+        '204':
+          description: Visitor successfully disabled.
+        '404':
+          description: Visitor not found.
+      security:
+        - BearerAuth: []
+
+  /visitors/search:
+    get:
+      tags:
+        - visitor
+      summary: Search for a visitor
+      description: Find a visitor by their name or ID.
+      operationId: searchVisitor
+      parameters:
+      - name: query
+        in: query
+        description: Visitor name or ID to search for
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          description: Search results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Visitor'
+      security:
+        - BearerAuth: []
+
+  # --- Security/Reception Module ---
+  /reception/checkin:
+    post:
+      tags:
+        - reception
+      summary: Manually check-in a visitor
+      description: Security personnel check in a visitor using their visit ID or code.
+      operationId: manualCheckin
+      requestBody:
+        $ref: '#/components/requestBodies/CheckinRequest'
+      responses:
+        '200':
+          description: Visitor checked in successfully, returns badge details.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    $ref: '#/components/schemas/Badge'
+        '404':
+          description: Visit not found.
+      security:
+        - BearerAuth: []
+  
+  /reception/checkout:
+    post:
+      tags:
+        - reception
+      summary: Manually check-out a visitor
+      description: Security personnel check out a visitor using their visit ID.
+      operationId: manualCheckout
+      requestBody:
+        $ref: '#/components/requestBodies/CheckoutRequest'
+      responses:
+        '200':
+          description: Visitor checked out successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                        example: "Visitor checked out successfully."
+        '404':
+          description: Visit not found.
+      security:
+        - BearerAuth: []
+
+  # --- Logging Module ---
+  /logs:
+    get:
+      tags:
+        - logs
+      summary: Get and filter logs
+      description: Retrieves system logs with optional filters and format options.
+      operationId: getFilteredLogs
+      parameters:
+        - name: startDate
+          in: query
+          description: Start date for log filter.
+          schema:
+            $ref: '#/components/schemas/TimeStamp'
+        - name: endDate
+          in: query
+          description: End date for log filter.
+          schema:
+            $ref: '#/components/schemas/TimeStamp'
+        - name: eventType
+          in: query
+          description: Filter by log event type.
+          schema:
+            type: string
+            enum: [Check-in, Check-out, Host Created, Visitor Created, Admin Login, System Error]
+        - name: format
+          in: query
+          description: Output format for the logs.
+          schema:
+            type: string
+            enum: [json, csv, table]
+            default: json
+      responses:
+        '200':
+          description: Successfully retrieved logs.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Log'
+            text/csv:
+              schema:
+                type: string
+      security:
+        - BearerAuth: []
+
+components:
+  schemas:
+    Host:
+      type: object
+      required:
+        - name
+        - contact
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          $ref: '#/components/schemas/Name'
+        contact:
+          $ref: '#/components/schemas/Contact'
+        status:
+          type: string
+          enum: [active, disabled]
+          example: active
+        visits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Visit'
+    
+    Visitor:
+      type: object
+      required:
+        - name
+        - contact
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        name:
+          $ref: '#/components/schemas/Name'
+        contact:
+          $ref: '#/components/schemas/Contact'
+        workplace:
+          $ref: '#/components/schemas/Workplace'
+        picture:
+          $ref: '#/components/schemas/Picture'
+        status:
+          type: string
+          enum: [active, disabled]
+          example: active
+
+    Visit:
+      type: object
+      required:
+        - id
+        - hostId
+        - visitorId
+        - invitationCode
+        - expectedArrival
+        - status
+      properties:
+        id:
+          $ref: '#/components/schemas/Id'
+        hostId:
+          $ref: '#/components/schemas/Id'
+        visitorId:
+          $ref: '#/components/schemas/Id'
+        invitationCode:
+          type: string
+          example: "INV123456"
+        expectedArrival:
+          $ref: '#/components/schemas/TimeStamp'
+        checkInTime:
+          $ref: '#/components/schemas/TimeStampNullable'
+        checkOutTime:
+          $ref: '#/components/schemas/TimeStampNullable'
+        status:
+          type: string
+          enum: [Pending, Expected, Checked In, Checked Out, Canceled, Approved, Denied, Unattended]
+          example: "Checked In"
+        reason:
+          type: string
+          nullable: true
+          example: "The requested date is not available."
+        resolvedBy:
+          $ref: '#/components/schemas/IdNullable'
+        resolvedAt:
+          $ref: '#/components/schemas/TimeStampNullable'
+    
+    Log:
+      type: object
+      required:
+        - timestamp
+        - eventType
+        - details
+      properties:
+        timestamp:
+          $ref: '#/components/schemas/TimeStamp'
+        eventType:
+          type: string
+          enum: [Check-in, Check-out, Host Created, Visitor Created, Admin Login, System Error, Visit Approved, Visit Denied, Host Disabled]
+          example: "Check-in"
+        details:
+          type: string
+          example: "Visitor John Doe checked in at front desk with host Jane Smith (Room 305)"
+    
+    Id:
+      type: string
+      format: uuid
+      example: c93a6a72-1f69-41a8-946f-0f4e1d7a4cf6
+    
+    IdNullable:
+      type: string
+      format: uuid
+      nullable: true
+      example: c93a6a72-1f69-41a8-946f-0f4e1d7a4cf6
+      
+    AuthToken:
+      type: string
+      format: jwt
+      example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+      
+    Name:
+      type: string
+      example: Some Name
+      
+    Contact:
+      type: object
+      properties:
+        phoneNo:
+          type: string
+          example: '9876543210'
+        email:
+          type: string
+          format: email
+          example: name@example.com
+
+    TimeStamp:
+      type: string
+      format: date-time
+      example: "2025-08-03T10:00:00Z"
+
+    TimeStampNullable:
+      type: string
+      format: date-time
+      nullable: true
+      example: "2025-08-03T10:00:00Z"
+      
+    Password:
+      type: string
+      format: password
+      example: "{;MyStrongPassvoid123+"
+
+    Workplace:
+      type: string
+      example: Abc Corporation
+      
+    Picture:
+      type: string
+      format: url
+      example: '/data/image/your-image'
+    
+    Error:
+      type: object
+      properties:
+        code:
+          type: integer
+        message:
+          type: string
+      required:
+        - code
+        - message
+    
+    Badge:
+      type: object
+      properties:
+        badgeId:
+          $ref: '#/components/schemas/Id'
+        visitor:
+          $ref: '#/components/schemas/Visitor'
+        visitInfo:
+          $ref: '#/components/schemas/Visit'
+        accessLevel:
+          type: string
+          example: "Main Building Access"
+
+  requestBodies:
+    Credentials:
+      description: Host credentials for login
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                $ref: '#/components/schemas/Name'
+              password:
+                $ref: '#/components/schemas/Password'
+
+    CreateHost:
+      description: Host registration data
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - password
+              - contact
+            properties:
+              name:
+                $ref: '#/components/schemas/Name'
+              password:
+                $ref: '#/components/schemas/Password'
+              contact:
+                $ref: '#/components/schemas/Contact'
+    
+    UpdateHost:
+      description: Partial host data to update.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/Name'
+              contact:
+                $ref: '#/components/schemas/Contact'
+    
+    CreateVisitor:
+      description: Visitor registration data
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - name
+              - contact
+            properties:
+              name:
+                $ref: '#/components/schemas/Name'
+              contact:
+                $ref: '#/components/schemas/Contact'
+              workplace:
+                $ref: '#/components/schemas/Workplace'
+              picture:
+                $ref: '#/components/schemas/Picture'
+
+    UpdateVisitor:
+      description: Partial visitor data to update
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                $ref: '#/components/schemas/Name'
+              contact:
+                $ref: '#/components/schemas/Contact'
+              workplace:
+                $ref: '#/components/schemas/Workplace'
+              picture:
+                $ref: '#/components/schemas/Picture'
+
+    DisableVisitor:
+      description: Reason for disabling a visitor.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              reason:
+                type: string
+                example: "Visitor no longer with the company."
+    
+    RequestVisit:
+      description: Visit request details
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - visitorId
+              - expectedArrival
+            properties:
+              visitorId:
+                $ref: '#/components/schemas/Id'
+              expectedArrival:
+                $ref: '#/components/schemas/TimeStamp'
+    
+    UpdateVisit:
+      description: Partial visit data to update
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              expectedArrival:
+                $ref: '#/components/schemas/TimeStamp'
+    
+    CancelVisit:
+      description: Reason for cancelling the visit.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - reason
+            properties:
+              reason:
+                type: string
+                example: "Meeting was rescheduled."
+    
+    CheckinRequest:
+      description: Details for a manual visitor check-in
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - invitationCode
+            properties:
+              invitationCode:
+                type: string
+                example: "INV123456"
+
+    CheckoutRequest:
+      description: Details for a manual visitor check-out
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - visitId
+            properties:
+              visitId:
+                $ref: '#/components/schemas/Id'
+
+    ResolveVisit:
+      description: Action and optional reason for resolving the visit.
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            required:
+              - action
+            properties:
+              action:
+                type: string
+                enum: [approve, deny]
+              reason:
+                type: string
+                nullable: true
+                example: "The requested date is not available."
+
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
