@@ -56,12 +56,15 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
 
   # --- Host Module ---
   /admins/create-host:
     post:
       tags:
         - admin
+      x-roles: [admin]
       summary: Register a new host
       description: Admin can register a new host.
       operationId: createHost
@@ -79,12 +82,18 @@ paths:
                     $ref: '#/components/schemas/Host'
         '400':
           description: Invalid input
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to create host
         '409':
           description: A host with the same email or username already exists.
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
   
@@ -92,6 +101,7 @@ paths:
     get:
       tags:
         - hosts
+      x-roles: [admin, host]
       summary: Find host by Id
       description: Returns a host's details.
       operationId: getHostById
@@ -103,7 +113,7 @@ paths:
           $ref: '#/components/schemas/Id'
       responses:
         '200':
-          description: Successful operation
+          description: Successful operation, returning single host
           content:
             application/json:
               schema:
@@ -115,12 +125,19 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Host not found
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to access host
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
     
     patch:
       tags:
         - hosts
+      x-roles: [admin, host]
       summary: Update host details
       description: Hosts can update their own details or admins can update a host's details.
       operationId: updateHostById
@@ -135,7 +152,7 @@ paths:
         $ref: '#/components/requestBodies/UpdateHost'
       responses:
         '200':
-          description: Successful operation
+          description: Host updated Successfully
           content:
             application/json:
               schema:
@@ -147,6 +164,12 @@ paths:
           description: Invalid ID supplied
         '404':
           description: Host not found
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to update host
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
 
@@ -155,6 +178,7 @@ paths:
     post:
       tags:
         - visit
+      x-roles: [admin, host]
       summary: Request a visit
       description: Hosts or admins can request a visit by providing visitorId and expected arrival time.
       operationId: requestVisit
@@ -177,7 +201,9 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '401':
-          description: Unauthorised
+          description: Invalid or no authentication credentials
+        '403':
+          description: Not Authorized to request visit
         '500':
           description: Internal Server Error
       security:
@@ -186,6 +212,7 @@ paths:
     get:
       tags:
         - visit
+      x-roles: [admin, host, reception]
       summary: Get and filter visits
       description: Retrieves visits with optional filters.
       operationId: getFilteredVisits
@@ -215,7 +242,7 @@ paths:
             example: "2025-08-03"
       responses:
         '200':
-          description: visits fetched successfully
+          description: successful operation, returns filtered array of visits
           content:
             application/json:
               schema:
@@ -227,6 +254,12 @@ paths:
                       $ref: '#/components/schemas/Visit'
         '204':
           description: No Visit get filtered
+        '400':
+          description: Invalid Filter arguments
+        '401':
+          description: Invalid or no Authentication Credentials
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
   
@@ -234,6 +267,7 @@ paths:
     patch:
       tags:
         - visit
+      x-roles: [admin, host, reception]
       summary: Update a visit
       description: Hosts and Admins can update a visit by providing visitId and new information.
       operationId: updateVisit
@@ -255,8 +289,14 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Visit'
+        '400':
+          description: Invalid request to update visit
         '404':
           description: Visit not found.
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to access update visit
         '500':
           description: Internal Server Error
       security:
@@ -265,6 +305,7 @@ paths:
     post:
       tags:
         - visit
+      x-roles: [admin, host]
       summary: Cancel a visit
       description: Hosts and admins can cancel a visit.
       operationId: cancelVisit
@@ -286,6 +327,12 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Visit'
+        '400':
+          description: Invalid Id
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to cancel visit
         '404':
           description: Visit not found.
         '500':
@@ -297,6 +344,7 @@ paths:
     post:
       tags:
         - visit
+      x-roles: [admin]
       summary: Approve or deny a visit request
       description: Admins can approve or deny a visit request and specify a reason.
       operationId: resolveVisitRequest
@@ -320,10 +368,14 @@ paths:
                     $ref: '#/components/schemas/Visit'
         '400':
           description: Invalid input or action.
+        '401':
+          description: Invalid or no authentication credentials
         '403':
-          description: Forbidden, only admins can resolve requests.
+          description: Not authorized to resolve visit requests.
         '404':
           description: Visit request not found.
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
   
@@ -332,6 +384,7 @@ paths:
     post:
       tags:
         - visitor
+      x-roles: [admin, host]
       summary: Create a visitor
       description: Host can create a visitor by providing required information.
       operationId: createVisitor
@@ -349,6 +402,10 @@ paths:
                     $ref: '#/components/schemas/Visitor'
         '400':
           description: Invalid input
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to create Visitor
         '409':
           description: A visitor with the same email or contact already exists.
         '500':
@@ -359,12 +416,13 @@ paths:
     get:
       tags:
         - visitor
+      x-roles: [admin, host, reception]
       summary: Get all visitors
       description: Get information about all the visitors.
       operationId: getAllVisitors
       responses:
         '200':
-          description: Visitors data retrieved successfully.
+          description: Successful operation, returns visitors array.
           content:
             application/json:
               schema:
@@ -374,6 +432,12 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Visitor'
+        '204':
+          description: There are no visitors
+        '401':
+          description: Invalid or no Authentication Credentials
+        '500':
+          description: Internal Server Error
         '404':
           description: Visitors not found.
       security:
@@ -383,6 +447,7 @@ paths:
     get:
       tags:
         - visitor
+      x-roles: [admin, host, reception]
       summary: Get visitor by id
       description: Hosts and admin can get visitor details by visitor id.
       operationId: getVisitorById
@@ -394,7 +459,7 @@ paths:
           $ref: '#/components/schemas/Id'
       responses:
         '200':
-          description: Visitor fetched successfully.
+          description: Successful operation, returns a single visitors.
           content:
             application/json:
               schema:
@@ -404,6 +469,10 @@ paths:
                     $ref: '#/components/schemas/Visitor'
         '400':
           description: Invalid input
+        '401':
+          description: Invalid or no Authentication Credentials
+        '500':
+          description: Internal Server Error
         '404':
           description: Visitor not found.
       security:
@@ -412,6 +481,7 @@ paths:
     patch:
       tags:
         - visitor
+      x-roles: [admin, host]
       summary: Update visitor by Id
       description: Hosts and admins can update visitor details by providing visitor id and new information.
       operationId: updateVisitorById
@@ -435,15 +505,24 @@ paths:
                   data:
                     $ref: '#/components/schemas/Visitor'
         '400':
-          description: Invalid input
+          description: Invalid Id or data
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to update visitor
+        '500':
+          description: Internal Server Error
         '404':
           description: Visitor not found.
+        '409':
+          description: A visitor with same email or username exists
       security:
         - BearerAuth: []
     
     delete:
       tags:
         - visitor
+      x-roles: [admin]
       summary: Disable visitor
       description: Disable a visitor account by their ID.
       operationId: disableVisitorById
@@ -457,6 +536,16 @@ paths:
       responses:
         '204':
           description: Visitor successfully disabled.
+        '400':
+          description: Invalid Id
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to disable visitor
+        '500':
+          description: Internal Server Error
+        '409':
+          description: visitor is already disabled
         '404':
           description: Visitor not found.
       security:
@@ -466,8 +555,9 @@ paths:
     get:
       tags:
         - visitor
+      x-roles: [admin, host, reception]
       summary: Search for a visitor
-      description: Find a visitor by their name or ID.
+      description: Find a visitor by their name.
       operationId: searchVisitor
       parameters:
       - name: query
@@ -478,7 +568,7 @@ paths:
           type: string
       responses:
         '200':
-          description: Search results
+          description: Successful operation, returns visitor array
           content:
             application/json:
               schema:
@@ -488,17 +578,30 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Visitor'
+        '404':
+          description: visitor not found
+        '401':
+          description: Invalid or no Authentication Credentials
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
 
   # --- Security/Reception Module ---
-  /reception/checkin:
+  /visits/{Id}/checkin:
     post:
       tags:
-        - reception
+        - visit
+      x-roles: [reception]
       summary: Manually check-in a visitor
       description: Security personnel check in a visitor using their visit ID or code.
       operationId: manualCheckin
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
       requestBody:
         $ref: '#/components/requestBodies/CheckinRequest'
       responses:
@@ -511,36 +614,45 @@ paths:
                 properties:
                   data:
                     $ref: '#/components/schemas/Badge'
+        '400':
+          description: Invalid Invitation code or Id
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to checkin a visit
+        '500':
+          description: Internal Server Error
         '404':
           description: Visit not found.
       security:
         - BearerAuth: []
   
-  /reception/checkout:
+  /visit/{Id}/checkout:
     post:
       tags:
         - reception
       summary: Manually check-out a visitor
       description: Security personnel check out a visitor using their visit ID.
       operationId: manualCheckout
+      parameters:
+      - name: Id
+        in: path
+        required: true
+        schema:
+          $ref: '#/components/schemas/Id'
       requestBody:
         $ref: '#/components/requestBodies/CheckoutRequest'
       responses:
-        '200':
+        '204':
           description: Visitor checked out successfully.
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: object
-                    properties:
-                      message:
-                        type: string
-                        example: "Visitor checked out successfully."
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to checkout visit
+        '500':
+          description: Internal Server Error
         '404':
-          description: Visit not found.
+          description: Visit not found
       security:
         - BearerAuth: []
 
@@ -549,6 +661,7 @@ paths:
     get:
       tags:
         - logs
+      x-roles: [admin,host, reception]
       summary: Get and filter logs
       description: Retrieves system logs with optional filters and format options.
       operationId: getFilteredLogs
@@ -588,9 +701,16 @@ paths:
                     type: array
                     items:
                       $ref: '#/components/schemas/Log'
-            text/csv:
-              schema:
-                type: string
+        '204':
+          description: No filtered logs found
+        '400':
+          description: Invalid filter input
+        '401':
+          description: Invalid or no Authentication Credentials
+        '403':
+          description: Not authorized to access host
+        '500':
+          description: Internal Server Error
       security:
         - BearerAuth: []
 
