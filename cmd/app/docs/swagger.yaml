@@ -58,12 +58,41 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Logout user
+      description: logout user by making the token invalid for authentication
+      operationId: logout
+      responses:
+        '200':
+          description: Successfully logged out
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Successfully logged out"
+        '400':
+          description: invalid or missing token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+      security:
+        - BearerAuth: []
 
   # --- Host Module ---
-  /admins/create-host:
+  /hosts:
     post:
       tags:
-        - admin
+        - hosts
       x-roles: [admin]
       summary: Register a new host
       description: Admin can register a new host.
@@ -82,10 +111,22 @@ paths:
                     $ref: '#/components/schemas/Host'
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to create host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: A host with the same email or username already exists.
           content:
@@ -94,6 +135,10 @@ paths:
                 $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
   
@@ -123,14 +168,34 @@ paths:
                     $ref: '#/components/schemas/Host'
         '400':
           description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Host not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to access host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
     
@@ -162,14 +227,34 @@ paths:
                     $ref: '#/components/schemas/Host'
         '400':
           description: Invalid ID supplied
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Host not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to update host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
 
@@ -202,10 +287,22 @@ paths:
                 $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no authentication credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not Authorized to request visit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
     
@@ -254,12 +351,28 @@ paths:
                       $ref: '#/components/schemas/Visit'
         '204':
           description: No Visit get filtered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '400':
           description: Invalid Filter arguments
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
   
@@ -291,14 +404,34 @@ paths:
                     $ref: '#/components/schemas/Visit'
         '400':
           description: Invalid request to update visit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visit not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to access update visit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
     
@@ -329,14 +462,34 @@ paths:
                     $ref: '#/components/schemas/Visit'
         '400':
           description: Invalid Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to cancel visit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visit not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
 
@@ -368,14 +521,34 @@ paths:
                     $ref: '#/components/schemas/Visit'
         '400':
           description: Invalid input or action.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no authentication credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to resolve visit requests.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visit request not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
   
@@ -402,14 +575,34 @@ paths:
                     $ref: '#/components/schemas/Visitor'
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to create Visitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: A visitor with the same email or contact already exists.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
     
@@ -436,10 +629,22 @@ paths:
           description: There are no visitors
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visitors not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
   
@@ -469,12 +674,28 @@ paths:
                     $ref: '#/components/schemas/Visitor'
         '400':
           description: Invalid input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visitor not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
     
@@ -506,16 +727,40 @@ paths:
                     $ref: '#/components/schemas/Visitor'
         '400':
           description: Invalid Id or data
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to update visitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visitor not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: A visitor with same email or username exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
     
@@ -538,16 +783,40 @@ paths:
           description: Visitor successfully disabled.
         '400':
           description: Invalid Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to disable visitor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '409':
           description: visitor is already disabled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visitor not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
 
@@ -580,10 +849,22 @@ paths:
                       $ref: '#/components/schemas/Visitor'
         '404':
           description: visitor not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
 
@@ -616,14 +897,34 @@ paths:
                     $ref: '#/components/schemas/Badge'
         '400':
           description: Invalid Invitation code or Id
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to checkin a visit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visit not found.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
   
@@ -647,12 +948,28 @@ paths:
           description: Visitor checked out successfully.
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to checkout visit
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: Visit not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
 
@@ -703,14 +1020,34 @@ paths:
                       $ref: '#/components/schemas/Log'
         '204':
           description: No filtered logs found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '400':
           description: Invalid filter input
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '401':
           description: Invalid or no Authentication Credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '403':
           description: Not authorized to access host
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '500':
           description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
       security:
         - BearerAuth: []
 
@@ -887,10 +1224,10 @@ components:
       properties:
         badgeId:
           $ref: '#/components/schemas/Id'
-        visitor:
-          $ref: '#/components/schemas/Visitor'
-        visitInfo:
-          $ref: '#/components/schemas/Visit'
+        visitorId:
+          $ref: '#/components/schemas/Id'
+        visitId:
+          $ref: '#/components/schemas/Id'
         accessLevel:
           type: string
           example: "Main Building Access"
