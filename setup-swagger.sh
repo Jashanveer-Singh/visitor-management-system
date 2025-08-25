@@ -8,7 +8,9 @@ TARGET_DIR="./docs/swagger"
 echo "Setting up Swagger UI..."
 
 # Remove and recreate target dir
-rm -r "$TARGET_DIR"
+if [[ -d $TARGET_DIR ]]; then
+  rm -r "$TARGET_DIR"
+fi
 mkdir -p "$TARGET_DIR"
 
 # Download Swagger UI dist
@@ -20,7 +22,7 @@ chmod -R 755 "$TARGET_DIR"
 rm -rf "swagger-ui-${SWAGGER_UI_VERSION#v}" swagger-ui.zip
 
 # Create swagger-initializer.js
-cat > "$TARGET_DIR/swagger-initializer.js" <<EOF
+cat >"$TARGET_DIR/swagger-initializer.js" <<EOF
 window.onload = function() {
   //<editor-fold desc="Changeable Configuration Block">
 
