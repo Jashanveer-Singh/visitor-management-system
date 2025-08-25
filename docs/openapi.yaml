@@ -1,4 +1,4 @@
-openapi: 3.0.4
+openapi: 3.0.3
 info:
   title: Guest Management System
   description: |-
@@ -7,10 +7,8 @@ info:
 servers:
   - url: https://localhost/
 tags:
-  - name: hosts
-    description: operations of host
-  - name: admin
-    description: operations of admin
+  - name: user
+    description: operations of user
   - name: visitor
     description: manage your visitors
   - name: visit
@@ -18,7 +16,7 @@ tags:
   - name: reception
     description: operations of reception
   - name: auth
-    description: Host authentication and authorization
+    description: User authentication and authorization
   - name: logs
     description: access the logs
 
@@ -28,7 +26,7 @@ paths:
     post:
       tags:
         - auth
-      summary: Login for all hosts and admins
+      summary: Login for all users and admins
       description: Authenticates a host and returns an access token.
       operationId: login
       requestBody:
@@ -65,8 +63,10 @@ paths:
 
   /auth/logout:
     post:
+      tags:
+        - auth
       summary: Logout user
-      description: logout user by making the token invalid for authentication
+      description: logout host by making the token invalid for authentication
       operationId: logout
       responses:
         '200':
@@ -88,15 +88,15 @@ paths:
       security:
         - BearerAuth: []
 
-  # --- Host Module ---
-  /hosts:
+  # --- User Module ---
+  /users:
     post:
       tags:
-        - hosts
+        - user
       x-roles: [admin]
-      summary: Register a new host
+      summary: Register a new user
       description: Admin can register a new host.
-      operationId: createHost
+      operationId: createUser
       requestBody:
         $ref: '#/components/requestBodies/CreateHost'
       responses:
@@ -122,7 +122,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Not authorized to create host
+          description: Not authorized to create user
           content:
             application/json:
               schema:
@@ -142,10 +142,10 @@ paths:
       security:
         - BearerAuth: []
   
-  /hosts/{Id}:
+  /users/{Id}:
     get:
       tags:
-        - hosts
+        - user
       x-roles: [admin, host]
       summary: Find host by Id
       description: Returns a host's details.
@@ -158,7 +158,7 @@ paths:
           $ref: '#/components/schemas/Id'
       responses:
         '200':
-          description: Successful operation, returning single host
+          description: Successful operation, returning single user
           content:
             application/json:
               schema:
@@ -173,7 +173,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Host not found
+          description: User not found
           content:
             application/json:
               schema:
@@ -185,7 +185,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Not authorized to access host
+          description: Not authorized to access user
           content:
             application/json:
               schema:
@@ -201,15 +201,15 @@ paths:
     
     patch:
       tags:
-        - hosts
+        - user
       x-roles: [admin, host]
       summary: Update host details
-      description: Hosts can update their own details or admins can update a host's details.
+      description: Users can update their own details or admins can update a host's details.
       operationId: updateHostById
       parameters:
         - name: Id
           in: path
-          description: Id of host
+          description: Id of user
           required: true
           schema:
             $ref: '#/components/schemas/Id'
@@ -217,7 +217,7 @@ paths:
         $ref: '#/components/requestBodies/UpdateHost'
       responses:
         '200':
-          description: Host updated Successfully
+          description: User updated Successfully
           content:
             application/json:
               schema:
@@ -232,7 +232,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '404':
-          description: Host not found
+          description: User not found
           content:
             application/json:
               schema:
@@ -244,7 +244,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Not authorized to update host
+          description: Not authorized to update user
           content:
             application/json:
               schema:
@@ -265,7 +265,7 @@ paths:
         - visit
       x-roles: [admin, host]
       summary: Request a visit
-      description: Hosts or admins can request a visit by providing visitorId and expected arrival time.
+      description: Users or admins can request a visit by providing visitorId and expected arrival time.
       operationId: requestVisit
       requestBody:
         $ref: '#/components/requestBodies/RequestVisit'
@@ -351,10 +351,6 @@ paths:
                       $ref: '#/components/schemas/Visit'
         '204':
           description: No Visit get filtered
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '400':
           description: Invalid Filter arguments
           content:
@@ -382,7 +378,7 @@ paths:
         - visit
       x-roles: [admin, host, reception]
       summary: Update a visit
-      description: Hosts and Admins can update a visit by providing visitId and new information.
+      description: Users and Admins can update a visit by providing visitId and new information.
       operationId: updateVisit
       parameters:
       - name: Id
@@ -440,7 +436,7 @@ paths:
         - visit
       x-roles: [admin, host]
       summary: Cancel a visit
-      description: Hosts and admins can cancel a visit.
+      description: Users and admins can cancel a visit.
       operationId: cancelVisit
       parameters:
       - name: Id
@@ -559,7 +555,7 @@ paths:
         - visitor
       x-roles: [admin, host]
       summary: Create a visitor
-      description: Host can create a visitor by providing required information.
+      description: User can create a visitor by providing required information.
       operationId: createVisitor
       requestBody:
         $ref: '#/components/requestBodies/CreateVisitor'
@@ -610,9 +606,28 @@ paths:
       tags:
         - visitor
       x-roles: [admin, host, reception]
-      summary: Get all visitors
+      summary: Get filtered visitors
       description: Get information about all the visitors.
       operationId: getAllVisitors
+      parameters:
+        - name: name
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Name'
+        - name: workplace
+          in: query
+          required: false
+          schema:
+            $ref: '#/components/schemas/Workplace'
+        - name: status
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [active, disabled]
+            example: active
+
       responses:
         '200':
           description: Successful operation, returns visitors array.
@@ -654,7 +669,7 @@ paths:
         - visitor
       x-roles: [admin, host, reception]
       summary: Get visitor by id
-      description: Hosts and admin can get visitor details by visitor id.
+      description: Users and admin can get visitor details by visitor id.
       operationId: getVisitorById
       parameters:
       - name: Id
@@ -704,7 +719,7 @@ paths:
         - visitor
       x-roles: [admin, host]
       summary: Update visitor by Id
-      description: Hosts and admins can update visitor details by providing visitor id and new information.
+      description: Users and admins can update visitor details by providing visitor id and new information.
       operationId: updateVisitorById
       parameters:
       - name: Id
@@ -820,53 +835,53 @@ paths:
       security:
         - BearerAuth: []
 
-  /visitors/search:
-    get:
-      tags:
-        - visitor
-      x-roles: [admin, host, reception]
-      summary: Search for a visitor
-      description: Find a visitor by their name.
-      operationId: searchVisitor
-      parameters:
-      - name: query
-        in: query
-        description: Visitor name or ID to search for
-        required: true
-        schema:
-          type: string
-      responses:
-        '200':
-          description: Successful operation, returns visitor array
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  data:
-                    type: array
-                    items:
-                      $ref: '#/components/schemas/Visitor'
-        '404':
-          description: visitor not found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '401':
-          description: Invalid or no Authentication Credentials
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Internal Server Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-      security:
-        - BearerAuth: []
+  # /visitors/search:
+  #   get:
+  #     tags:
+  #       - visitor
+  #     x-roles: [admin, host, reception]
+  #     summary: Search for a visitor
+  #     description: Find a visitor by their name.
+  #     operationId: searchVisitor
+  #     parameters:
+  #     - name: query
+  #       in: query
+  #       description: Visitor name or ID to search for
+  #       required: true
+  #       schema:
+  #         type: string
+  #     responses:
+  #       '200':
+  #         description: Successful operation, returns visitor array
+  #         content:
+  #           application/json:
+  #             schema:
+  #               type: object
+  #               properties:
+  #                 data:
+  #                   type: array
+  #                   items:
+  #                     $ref: '#/components/schemas/Visitor'
+  #       '404':
+  #         description: visitor not found
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
+  #       '401':
+  #         description: Invalid or no Authentication Credentials
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
+  #       '500':
+  #         description: Internal Server Error
+  #         content:
+  #           application/json:
+  #             schema:
+  #               $ref: '#/components/schemas/Error'
+  #     security:
+  #       - BearerAuth: []
 
   # --- Security/Reception Module ---
   /visits/{Id}/checkin:
@@ -998,7 +1013,7 @@ paths:
           description: Filter by log event type.
           schema:
             type: string
-            enum: [Check-in, Check-out, Host Created, Visitor Created, Admin Login, System Error]
+            enum: [Check-in, Check-out, User Created, Visitor Created, Admin Login, System Error]
         - name: format
           in: query
           description: Output format for the logs.
@@ -1020,10 +1035,6 @@ paths:
                       $ref: '#/components/schemas/Log'
         '204':
           description: No filtered logs found
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
         '400':
           description: Invalid filter input
           content:
@@ -1037,7 +1048,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '403':
-          description: Not authorized to access host
+          description: Not authorized to access user
           content:
             application/json:
               schema:
@@ -1146,7 +1157,7 @@ components:
           $ref: '#/components/schemas/TimeStamp'
         eventType:
           type: string
-          enum: [Check-in, Check-out, Host Created, Visitor Created, Admin Login, System Error, Visit Approved, Visit Denied, Host Disabled]
+          enum: [Check-in, Check-out, User Created, Visitor Created, Admin Login, System Error, Visit Approved, Visit Denied, User Disabled]
           example: "Check-in"
         details:
           type: string
@@ -1234,7 +1245,7 @@ components:
 
   requestBodies:
     Credentials:
-      description: Host credentials for login
+      description: User credentials for login
       required: true
       content:
         application/json:
@@ -1250,7 +1261,7 @@ components:
                 $ref: '#/components/schemas/Password'
 
     CreateHost:
-      description: Host registration data
+      description: User registration data
       required: true
       content:
         application/json:
